@@ -1,5 +1,8 @@
 /* ==========================================================================
-   Studio — Modern Portfolio
+   Studio — Interactive Spatial Environment
+   This website behaves like a kinetic installation. All elements are part
+   of a simulated physical system. Default browser behaviours (text selection,
+   highlighting, reading affordances) are considered bugs unless explicitly required.
    ========================================================================== */
 
 :root {
@@ -19,6 +22,7 @@
 
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Reset */
@@ -42,9 +46,59 @@ body {
     overflow-x: hidden;
 }
 
+/* ============================================
+   SPATIAL ENVIRONMENT RULES - NON-DOCUMENT MODE
+   Everything is an object, not text
+   ============================================ */
+
+/* Disable all text selection globally */
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove text selection highlight */
 ::selection {
-    background: var(--accent);
-    color: var(--white);
+    background: transparent;
+    color: inherit;
+}
+
+::-moz-selection {
+    background: transparent;
+    color: inherit;
+}
+
+/* Cursor is always default - never text-select */
+*,
+*::before,
+*::after {
+    cursor: default !important;
+}
+
+/* Links and interactive elements - force default cursor */
+a, button, .nav-link, .logo, .contact-email {
+    cursor: pointer !important;
+}
+
+/* All text elements are treated as surfaces, not content */
+h1, h2, h3, h4, h5, h6, p, span, a, li, div {
+    pointer-events: auto;
+    cursor: default;
+}
+
+/* Images are textures, not content - prevent drag */
+img {
+    pointer-events: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    user-select: none;
 }
 
 a {
@@ -62,36 +116,169 @@ a {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Physics Ball */
+/* ============================================
+   PHYSICS BALLS - Energy Particles System
+   Balls are manifestations of kinetic energy
+   ============================================ */
+
 .ball {
     display: none;
     position: absolute;
-    width: 20px;
-    height: 20px;
-    background: var(--white);
+    width: 24px;
+    height: 24px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 1), rgba(99, 102, 241, 0.9));
     border-radius: 50%;
     pointer-events: none;
     z-index: 10000;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 40px rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 0 30px rgba(255, 255, 255, 0.6),
+        0 0 60px rgba(99, 102, 241, 0.4),
+        0 0 100px rgba(99, 102, 241, 0.2),
+        inset 0 0 10px rgba(255, 255, 255, 0.8);
     transform: translate(-50%, -50%);
-    transition: opacity 0.5s ease;
+    transition: opacity 0.3s ease, transform 0.1s ease;
+    filter: brightness(1.2) blur(0.5px);
+}
+
+/* Pulsing energy effect */
+.ball::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent 70%);
+    animation: ballPulse 1s ease-in-out infinite;
+}
+
+/* Motion trail effect */
+.ball::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), transparent 70%);
+    filter: blur(2px);
+}
+
+@keyframes ballPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.3;
+    }
 }
 
 .ball.active {
     display: block;
     opacity: 1;
+    animation: ballSpawn 0.3s var(--ease-bounce) forwards;
+}
+
+@keyframes ballSpawn {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        filter: brightness(2) blur(2px);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        filter: brightness(1.2) blur(0.5px);
+    }
 }
 
 .ball.fade-out {
     opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+    filter: brightness(2) blur(3px);
 }
 
-/* Hero cursor style */
+/* Ball impact flash effect */
+.ball.impact {
+    animation: ballImpact 0.2s ease-out;
+}
+
+@keyframes ballImpact {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        filter: brightness(1.2);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.4);
+        filter: brightness(2) blur(1px);
+        box-shadow:
+            0 0 40px rgba(255, 255, 255, 0.9),
+            0 0 80px rgba(99, 102, 241, 0.6);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        filter: brightness(1.2);
+    }
+}
+
+/* Ball velocity trail - enhanced glow when moving fast */
+.ball.high-velocity {
+    filter: brightness(1.5) blur(1px);
+    box-shadow:
+        0 0 40px rgba(255, 255, 255, 0.8),
+        0 0 80px rgba(99, 102, 241, 0.5),
+        0 0 120px rgba(99, 102, 241, 0.3);
+}
+
+.ball.high-velocity::before {
+    animation: ballPulse 0.5s ease-in-out infinite;
+    transform: scale(1.5);
+    opacity: 0.8;
+}
+
+/* Resting ball - dimmed energy state */
+.ball.resting {
+    opacity: 0.7;
+    filter: brightness(0.8) blur(0.3px);
+    box-shadow:
+        0 0 20px rgba(255, 255, 255, 0.3),
+        0 0 40px rgba(99, 102, 241, 0.2);
+}
+
+.ball.resting::before {
+    animation: ballPulse 2s ease-in-out infinite;
+}
+
+/* ============================================
+   CUSTOM CURSOR SYSTEM - Spatial Probe
+   ============================================ */
+
+/* Custom cursor - force probe style globally */
+body {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="rgba(250,250,250,0.4)" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="rgba(250,250,250,0.8)"/></svg>') 12 12, auto !important;
+}
+
+/* Hero section - energy field cursor */
 .hero {
-    cursor: pointer;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="rgba(99,102,241,0.6)" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="none" stroke="rgba(99,102,241,0.3)" stroke-width="1"/><circle cx="16" cy="16" r="3" fill="rgba(99,102,241,0.8)"/></svg>') 16 16, pointer !important;
 }
 
-/* Header */
+/* Interactive elements - disturbance cursor */
+a:hover, button:hover, .work-item:hover, .service-card:hover {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="10" fill="none" stroke="rgba(250,250,250,0.6)" stroke-width="2" stroke-dasharray="3 3"/><circle cx="14" cy="14" r="4" fill="rgba(250,250,250,1)"/></svg>') 14 14, pointer !important;
+}
+
+/* ============================================
+   PHYSICS-BASED SCROLL TRANSFORMS
+   Scroll = energy input into the system
+   ============================================ */
+
+/* Every section has physics properties */
+section, .hero, .marquee, .work, .services, .philosophy, .about, .contact {
+    will-change: transform, opacity;
+    transition: transform 0.6s var(--ease-out), opacity 0.6s var(--ease-out);
+}
+
+/* Header floats in space with parallax */
 .header {
     position: fixed;
     top: 0;
@@ -103,6 +290,8 @@ a {
     align-items: center;
     padding: 1.5rem 3rem;
     mix-blend-mode: difference;
+    will-change: transform, backdrop-filter;
+    transition: transform 0.3s var(--ease-out), backdrop-filter 0.3s ease;
 }
 
 @media (max-width: 640px) {
@@ -111,12 +300,26 @@ a {
     }
 }
 
+/* Logo is a GLOWING OBJECT - pulses with energy */
 .logo {
     font-family: var(--font-display);
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--white);
     letter-spacing: -0.02em;
+    transition: transform 0.4s var(--ease-bounce), text-shadow 0.3s ease;
+    display: inline-block;
+    will-change: transform, text-shadow;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4);
+}
+
+.logo:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
 }
 
 .nav {
@@ -124,16 +327,28 @@ a {
     gap: 2.5rem;
 }
 
+/* Nav links are FLOATING OBJECTS - react to cursor energy */
 .nav-link {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--white);
     opacity: 0.7;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.4s var(--ease-bounce), text-shadow 0.3s ease;
+    display: inline-block;
+    will-change: transform, opacity, text-shadow;
+    position: relative;
 }
 
+/* Cursor proximity creates GLOW and LIFT */
 .nav-link:hover {
     opacity: 1;
+    transform: translateY(-2px) scale(1.05);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(99, 102, 241, 0.3);
+}
+
+.nav-link:active {
+    transform: translateY(0) scale(1);
+    transition: all 0.1s ease;
 }
 
 @media (max-width: 640px) {
@@ -165,6 +380,7 @@ a {
     max-width: 1200px;
 }
 
+/* Title is a SURFACE, not text - physical object behavior */
 .hero-title {
     font-family: var(--font-display);
     font-size: clamp(3rem, 10vw, 7rem);
@@ -174,12 +390,30 @@ a {
     color: var(--white);
     max-width: 1200px;
     width: min(90vw, 1200px);
+    will-change: transform, filter;
+    transition: transform 0.6s var(--ease-out), filter 0.3s ease;
+    transform-style: preserve-3d;
 }
 
+/* PNG title image is a TEXTURE/PANEL - not selectable content */
 .hero-title-image {
     display: block;
     width: 100%;
     height: auto;
+    will-change: transform, filter;
+    transition: transform 0.8s var(--ease-out), filter 0.5s ease;
+    filter: brightness(1) blur(0px);
+    transform-style: preserve-3d;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none;
+    -webkit-user-drag: none;
+}
+
+/* Hover on hero creates disturbance field around title */
+.hero:hover .hero-title-image {
+    filter: brightness(1.1) blur(0.5px) drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+    transform: translateZ(10px) scale(1.005);
 }
 
 .hero-title .line {
@@ -278,6 +512,7 @@ a {
     width: max-content;
 }
 
+/* Marquee words are PARTICLES in motion - not readable text */
 .marquee-word {
     font-family: var(--font-display);
     font-size: 0.8125rem;
@@ -286,6 +521,18 @@ a {
     text-transform: uppercase;
     color: var(--gray-600);
     white-space: nowrap;
+    transition: color 0.3s ease, transform 0.3s ease;
+    display: inline-block;
+}
+
+/* Marquee reacts to viewport entry - creates wave effect */
+.marquee:hover .marquee-word {
+    color: var(--gray-400);
+}
+
+.marquee-word:hover {
+    color: var(--accent-soft);
+    transform: scale(1.2) translateY(-2px);
 }
 
 @keyframes marquee {
@@ -309,12 +556,20 @@ a {
     margin-bottom: 3rem;
 }
 
+/* Section titles are PANELS - physical objects in space */
 .section-title {
     font-family: var(--font-display);
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 600;
     color: var(--white);
     letter-spacing: -0.02em;
+    will-change: transform;
+    transition: transform 0.4s var(--ease-out);
+    display: inline-block;
+}
+
+.section-title:hover {
+    transform: translateX(10px) scale(1.02);
 }
 
 @media (max-width: 640px) {
@@ -335,15 +590,28 @@ a {
     background: var(--gray-800);
 }
 
+/* Work items are OBJECTS with mass and resistance */
 .work-item {
     background: var(--black);
     padding: 2rem;
     cursor: pointer;
-    transition: background 0.4s var(--ease);
+    transition: background 0.4s var(--ease), transform 0.5s var(--ease-out), box-shadow 0.5s ease;
+    will-change: transform, background;
+    transform-origin: center;
+    position: relative;
 }
 
+/* Hover = cursor applies FORCE to the object - it reacts */
 .work-item:hover {
     background: var(--dark);
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(99, 102, 241, 0.1);
+}
+
+/* Active state = object compressed by force */
+.work-item:active {
+    transform: translateY(-4px) scale(0.99);
+    transition: transform 0.1s ease;
 }
 
 .work-item--wide {
@@ -359,23 +627,34 @@ a {
     }
 }
 
+/* Image containers are SURFACES with depth */
 .work-image {
     aspect-ratio: 16/10;
     overflow: hidden;
     margin-bottom: 1.5rem;
     background: var(--gray-900);
     border-radius: 4px;
+    position: relative;
+    transform-style: preserve-3d;
 }
 
+/* Images are TEXTURES - react to parent object movement */
 .work-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.6s var(--ease);
+    transition: transform 0.8s var(--ease-out), filter 0.4s ease;
+    will-change: transform, filter;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none;
+    -webkit-user-drag: none;
 }
 
+/* Force applied to work item distorts the image texture */
 .work-item:hover .work-image img {
-    transform: scale(1.03);
+    transform: scale(1.05) translateZ(5px);
+    filter: brightness(1.05) contrast(1.05);
 }
 
 .work-category {
@@ -436,16 +715,28 @@ a {
     }
 }
 
+/* Service cards are PANELS that float and respond to force */
 .service-card {
     background: var(--black);
     padding: 2.5rem 2rem;
     display: flex;
     flex-direction: column;
-    transition: background 0.4s var(--ease);
+    transition: background 0.4s var(--ease), transform 0.6s var(--ease-out), box-shadow 0.5s ease;
+    will-change: transform, background;
+    transform-origin: center;
+    position: relative;
 }
 
+/* Cursor applies REPELLING FORCE - card pushes back */
 .service-card:hover {
     background: var(--dark);
+    transform: translateY(-6px) rotateX(2deg);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3), 0 0 30px rgba(99, 102, 241, 0.08);
+}
+
+.service-card:active {
+    transform: translateY(-3px) rotateX(1deg) scale(0.98);
+    transition: transform 0.1s ease;
 }
 
 .service-card-header {
@@ -559,6 +850,7 @@ a {
     margin-bottom: 2rem;
 }
 
+/* CTA button is a PRESSABLE OBJECT with spring physics */
 .services-cta-btn {
     display: inline-block;
     font-family: var(--font-display);
@@ -568,12 +860,25 @@ a {
     padding: 1rem 2rem;
     background: var(--accent);
     border-radius: 100px;
-    transition: all 0.3s var(--ease);
+    transition: all 0.4s var(--ease-bounce), box-shadow 0.4s ease;
+    will-change: transform, background, box-shadow;
+    position: relative;
+    transform-origin: center;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
 }
 
+/* Cursor approaches - MAGNETIC PULL effect */
 .services-cta-btn:hover {
     background: var(--accent-soft);
-    transform: translateY(-2px);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.5), 0 0 60px rgba(99, 102, 241, 0.2);
+}
+
+/* Press - COMPRESSION physics */
+.services-cta-btn:active {
+    transform: translateY(-1px) scale(0.97);
+    box-shadow: 0 2px 15px rgba(99, 102, 241, 0.4);
+    transition: all 0.1s ease;
 }
 
 @media (max-width: 640px) {
@@ -595,6 +900,7 @@ a {
     text-align: center;
 }
 
+/* Philosophy text is a GLOWING SURFACE - not copy-able text */
 .philosophy-text {
     font-family: var(--font-display);
     font-size: clamp(1.5rem, 4vw, 2.5rem);
@@ -602,6 +908,14 @@ a {
     line-height: 1.4;
     color: var(--white);
     letter-spacing: -0.02em;
+    will-change: transform, text-shadow;
+    transition: transform 0.6s var(--ease-out), text-shadow 0.4s ease;
+    transform-style: preserve-3d;
+}
+
+.philosophy-text:hover {
+    transform: scale(1.02) translateZ(5px);
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.3), 0 0 80px rgba(99, 102, 241, 0.2);
 }
 
 @media (max-width: 640px) {
@@ -701,6 +1015,7 @@ a {
     margin-bottom: 2rem;
 }
 
+/* Contact button is FLOATING OBJECT - responds to proximity */
 .contact-email {
     display: inline-block;
     font-family: var(--font-display);
@@ -713,13 +1028,24 @@ a {
     background: transparent;
     cursor: pointer;
     position: relative;
-    transition: all 0.3s var(--ease);
+    transition: all 0.5s var(--ease-bounce), box-shadow 0.4s ease;
+    will-change: transform, background, border-color;
+    transform-origin: center;
+    box-shadow: 0 0 0 rgba(99, 102, 241, 0);
 }
 
+/* Cursor creates ENERGY FIELD - button reacts with glow and lift */
 .contact-email:hover {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--white);
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 0 10px 50px rgba(99, 102, 241, 0.4), 0 0 80px rgba(99, 102, 241, 0.2);
+}
+
+.contact-email:active {
+    transform: translateY(-3px) scale(1.02);
+    transition: all 0.1s ease;
 }
 
 .email-copied-bubble {
@@ -811,6 +1137,87 @@ a {
 [data-reveal].revealed {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* ============================================
+   ADDITIONAL SPATIAL OBJECT RULES
+   ============================================ */
+
+/* Ensure all headings behave as surfaces */
+h1, h2, h3, h4, h5, h6 {
+    will-change: transform;
+    transition: transform 0.3s var(--ease-out);
+    transform-style: preserve-3d;
+}
+
+/* All paragraphs are BLOCKS not readable content */
+p {
+    will-change: transform;
+    transition: transform 0.3s var(--ease-out);
+}
+
+/* List items are OBJECTS in a grid */
+li {
+    transition: transform 0.3s var(--ease-out), color 0.3s ease;
+}
+
+li:hover {
+    transform: translateX(5px);
+    color: var(--accent-soft);
+}
+
+/* Links never underline - they're spatial anchors */
+a {
+    text-decoration: none !important;
+}
+
+a:hover {
+    text-decoration: none !important;
+}
+
+/* Footer elements are FLOATING TEXT OBJECTS */
+.footer-left, .footer-right {
+    will-change: transform;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.footer:hover .footer-left {
+    transform: translateX(-5px);
+}
+
+.footer:hover .footer-right {
+    transform: translateX(5px);
+}
+
+/* Work titles and categories are LABELS not text */
+.work-title, .work-category {
+    will-change: transform;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.work-item:hover .work-title {
+    transform: translateX(5px);
+}
+
+/* Service card text elements are SURFACE DETAILS */
+.service-card-title, .service-card-desc, .service-card-list {
+    will-change: transform;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.service-card:hover .service-card-title {
+    transform: translateX(8px) scale(1.02);
+}
+
+/* Hero sub text is FLOATING CAPTION */
+.hero-sub {
+    will-change: transform, opacity;
+    transition: transform 0.4s var(--ease-out), opacity 0.3s ease;
+}
+
+.hero:hover .hero-sub {
+    transform: translateY(-5px);
+    opacity: 0.9;
 }
 
 /* Reduced Motion */
