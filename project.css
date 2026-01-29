@@ -730,6 +730,12 @@
     max-width: 1200px;
 }
 
+.gallery-grid {
+    width: 85vw;
+    max-width: 1400px;
+    gap: 1.5rem;
+}
+
 .marketing-grid.horizontal-spread {
     transform: translateX(0);
     transition: transform 1s var(--ease);
