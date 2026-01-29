@@ -1,26 +1,189 @@
 /**
- * Musa Studio — Portfolio Interactions
+ * Musa Studio — Spatial Environment Physics
+ * This is a kinetic installation where scroll = energy input
+ * All elements are physical objects with mass, collision, and momentum
  */
 
 (function() {
     'use strict';
 
     // =========================================================================
-    // Physics Balls - Gravity Drop (Multiple balls supported)
+    // Scroll Physics System - Scroll is Force, Not Navigation
+    // =========================================================================
+    let lastScrollY = window.scrollY;
+    let scrollVelocity = 0;
+    let scrollMomentum = 0;
+    const momentumDecay = 0.92;
+
+    function updateScrollPhysics() {
+        const currentScrollY = window.scrollY;
+        const delta = currentScrollY - lastScrollY;
+
+        scrollVelocity = delta;
+        scrollMomentum += delta * 0.1;
+        scrollMomentum *= momentumDecay;
+
+        lastScrollY = currentScrollY;
+
+        // Apply physics to header - floats and blurs with velocity
+        const header = document.querySelector('.header');
+        if (header) {
+            const blurAmount = Math.min(Math.abs(scrollVelocity) * 0.3, 8);
+            const translateY = scrollMomentum * 0.2;
+            header.style.transform = `translateY(${translateY}px)`;
+            header.style.backdropFilter = `blur(${blurAmount}px)`;
+        }
+
+        // Apply parallax and distortion to hero title
+        const heroTitle = document.querySelector('.hero-title-image');
+        if (heroTitle) {
+            const heroRect = heroTitle.getBoundingClientRect();
+            const heroProgress = 1 - (heroRect.top / window.innerHeight);
+
+            if (heroProgress > 0 && heroProgress < 1.5) {
+                const parallax = heroProgress * 50;
+                const blur = Math.abs(scrollVelocity) * 0.15;
+                const scale = 1 + (heroProgress * 0.05);
+
+                heroTitle.style.transform = `translateY(${parallax}px) scale(${scale}) translateZ(10px)`;
+                heroTitle.style.filter = `brightness(${1 - heroProgress * 0.3}) blur(${blur}px)`;
+            }
+        }
+
+        // Apply momentum-based transforms to sections
+        document.querySelectorAll('.work-item, .service-card').forEach((item, index) => {
+            const rect = item.getBoundingClientRect();
+            const itemCenter = rect.top + rect.height / 2;
+            const viewportCenter = window.innerHeight / 2;
+            const distance = itemCenter - viewportCenter;
+            const isInView = rect.top < window.innerHeight && rect.bottom > 0;
+
+            if (isInView) {
+                const parallaxAmount = distance * 0.05;
+                const rotateAmount = (scrollMomentum * 0.002) * (index % 2 === 0 ? 1 : -1);
+                const opacity = 1 - Math.abs(distance / window.innerHeight) * 0.3;
+
+                item.style.transform = `translateY(${parallaxAmount}px) rotateX(${rotateAmount}deg)`;
+                item.style.opacity = Math.max(opacity, 0.3);
+            }
+        });
+
+        requestAnimationFrame(updateScrollPhysics);
+    }
+
+    // Start scroll physics engine
+    requestAnimationFrame(updateScrollPhysics);
+
+    // Track scroll events for velocity calculation
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            scrollVelocity = 0;
+        }, 100);
+    }, { passive: true });
+
+    // =========================================================================
+    // Cursor Disturbance Field - Creates force around cursor
+    // =========================================================================
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetMouseX = 0;
+    let targetMouseY = 0;
+    const mouseSmoothing = 0.15;
+
+    window.addEventListener('mousemove', (e) => {
+        targetMouseX = e.clientX;
+        targetMouseY = e.clientY;
+    });
+
+    function animateMouseDisturbance() {
+        mouseX += (targetMouseX - mouseX) * mouseSmoothing;
+        mouseY += (targetMouseY - mouseY) * mouseSmoothing;
+
+        // Apply magnetic/repel effect to nearby elements with bounds
+        document.querySelectorAll('.work-item, .service-card, .services-cta-btn, .contact-email').forEach(item => {
+            const rect = item.getBoundingClientRect();
+            const itemCenterX = rect.left + rect.width / 2;
+            const itemCenterY = rect.top + rect.height / 2;
+
+            const distanceX = mouseX - itemCenterX;
+            const distanceY = mouseY - itemCenterY;
+            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+            const maxDistance = 200;
+            const maxDisplacement = 25; // Limit how far elements can move
+
+            if (distance < maxDistance && distance > 0) {
+                const force = (1 - distance / maxDistance) * 15;
+                const angle = Math.atan2(distanceY, distanceX);
+
+                // Repel effect with bounded displacement
+                let repelX = -Math.cos(angle) * force;
+                let repelY = -Math.sin(angle) * force;
+
+                // Clamp displacement to prevent flying away
+                repelX = Math.max(-maxDisplacement, Math.min(maxDisplacement, repelX));
+                repelY = Math.max(-maxDisplacement, Math.min(maxDisplacement, repelY));
+
+                item.style.transform = `translate(${repelX}px, ${repelY}px)`;
+            } else {
+                item.style.transform = '';
+            }
+        });
+
+        requestAnimationFrame(animateMouseDisturbance);
+    }
+
+    animateMouseDisturbance();
+
+    // =========================================================================
+    // Physics Balls - Enhanced Energy Particle System
+    // Balls are physical manifestations of kinetic energy
     // =========================================================================
     const ballContainer = document.body;
     const hero = document.querySelector('.hero');
     const balls = [];
-    const maxBalls = 20;
+    const maxBalls = 25;
 
-    const gravity = 0.6;
-    const airResistance = 0.992;
-    const bounceFactor = 0.45;
-    const ballBounceFactor = 0.35;
-    const ballRadius = 10;
-    const stopVelocity = 0.2;
-    const maxVelocity = 30;
+    const gravity = 0.7;
+    const airResistance = 0.995;
+    const bounceFactor = 0.6;
+    const ballBounceFactor = 0.5;
+    const ballRadius = 12;
+    const stopVelocity = 0.15;
+    const maxVelocity = 35;
+    const magneticRadius = 150; // Cursor magnetic field radius
+    const magneticStrength = 0.3;
+    const maskAlphaThreshold = 10;
     let lastTime = 0;
+    let lastScrollSpawnTime = 0;
+
+    const maskCache = new WeakMap();
+
+    function getMaskData(el) {
+        if (maskCache.has(el)) {
+            return maskCache.get(el);
+        }
+
+        if (!el.complete || !el.naturalWidth || !el.naturalHeight) {
+            return null;
+        }
+
+        const canvas = document.createElement('canvas');
+        const width = el.naturalWidth;
+        const height = el.naturalHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(el, 0, 0, width, height);
+        const data = ctx.getImageData(0, 0, width, height).data;
+
+        const mask = { data, width, height };
+        maskCache.set(el, mask);
+        return mask;
+    }
 
     // Create a new ball element
     function createBall() {
@@ -52,16 +215,42 @@
             const insetY = Math.min(10, rect.height * 0.12);
             const left = rect.left + insetX;
             const right = rect.right - insetX;
-            const top = rect.top + window.scrollY + insetY;
-            const bottom = rect.bottom + window.scrollY - insetY;
+            // Use viewport coordinates - no scroll offset needed with fixed positioning
+            const top = rect.top + insetY;
+            const bottom = rect.bottom - insetY;
             if (right - left < 4 || bottom - top < 4) return;
 
             obstacles.push({
                 type: 'rect',
+                element: el,
                 left,
                 right,
                 top,
                 bottom
+            });
+        });
+
+        document.querySelectorAll('[data-ball-mask]').forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            if (rect.width < 6 || rect.height < 6) return;
+
+            const mask = getMaskData(el);
+            if (!mask) return;
+
+            const left = rect.left;
+            const right = rect.right;
+            const top = rect.top;
+            const bottom = rect.bottom;
+
+            obstacles.push({
+                type: 'mask',
+                left,
+                right,
+                top,
+                bottom,
+                width: rect.width,
+                height: rect.height,
+                mask
             });
         });
 
@@ -88,6 +277,20 @@
             const minOverlapX = Math.min(overlapLeft, overlapRight);
             const minOverlapY = Math.min(overlapTop, overlapBottom);
 
+            // Add impact flash effect to ball
+            ballObj.element.classList.add('impact');
+            setTimeout(() => {
+                if (ballObj.element) ballObj.element.classList.remove('impact');
+            }, 200);
+
+            // Add flash effect to collided text element
+            if (obs.element) {
+                obs.element.classList.add('ball-hit');
+                setTimeout(() => {
+                    if (obs.element) obs.element.classList.remove('ball-hit');
+                }, 400);
+            }
+
             if (minOverlapX < minOverlapY) {
                 if (overlapLeft < overlapRight) {
                     ballObj.x = obs.left - ballRadius;
@@ -99,15 +302,22 @@
                 if (Math.abs(ballObj.vx) < stopVelocity) {
                     ballObj.vx = 0;
                 }
+                // Add rotation on side collision
+                ballObj.rotation = (ballObj.rotation || 0) + ballObj.vx * 2;
             } else {
                 if (overlapTop < overlapBottom) {
                     ballObj.y = obs.top - ballRadius;
                     ballObj.vy = -Math.abs(ballObj.vy) * bounceFactor;
-                    // Squash
-                    ballObj.element.style.transform = `translate(-50%, -50%) scaleX(1.3) scaleY(0.7)`;
+                    // Enhanced squash effect
+                    const impactForce = Math.min(Math.abs(ballObj.vy) / maxVelocity, 1);
+                    const squashX = 1 + impactForce * 0.5;
+                    const squashY = 1 - impactForce * 0.4;
+                    ballObj.element.style.transform = `translate(-50%, -50%) scaleX(${squashX}) scaleY(${squashY}) rotate(${ballObj.rotation || 0}deg)`;
                     setTimeout(() => {
-                        if (ballObj.element) ballObj.element.style.transform = `translate(-50%, -50%)`;
-                    }, 100);
+                        if (ballObj.element) {
+                            ballObj.element.style.transform = `translate(-50%, -50%) rotate(${ballObj.rotation || 0}deg)`;
+                        }
+                    }, 120);
                 } else {
                     ballObj.y = obs.bottom + ballRadius;
                     ballObj.vy = Math.abs(ballObj.vy) * bounceFactor;
@@ -119,6 +329,70 @@
             return true;
         }
         return false;
+    }
+
+    function checkMaskCollision(ballObj, obs) {
+        if (obs.type !== 'mask') return false;
+
+        const { x, y } = ballObj;
+        const ballLeft = x - ballRadius;
+        const ballRight = x + ballRadius;
+        const ballTop = y - ballRadius;
+        const ballBottom = y + ballRadius;
+
+        if (ballRight < obs.left || ballLeft > obs.right || ballBottom < obs.top || ballTop > obs.bottom) {
+            return false;
+        }
+
+        const localX = x - obs.left;
+        const localY = y - obs.top;
+
+        if (localX < 0 || localY < 0 || localX > obs.width || localY > obs.height) {
+            return false;
+        }
+
+        const sampleX = Math.max(0, Math.min(obs.mask.width - 1, Math.floor((localX / obs.width) * obs.mask.width)));
+        const sampleY = Math.max(0, Math.min(obs.mask.height - 1, Math.floor((localY / obs.height) * obs.mask.height)));
+        const alphaIndex = (sampleY * obs.mask.width + sampleX) * 4 + 3;
+        const alpha = obs.mask.data[alphaIndex];
+
+        if (alpha <= maskAlphaThreshold) {
+            return false;
+        }
+
+        const sampleOpaque = (dx, dy) => {
+            const ix = Math.max(0, Math.min(obs.mask.width - 1, sampleX + dx));
+            const iy = Math.max(0, Math.min(obs.mask.height - 1, sampleY + dy));
+            const a = obs.mask.data[(iy * obs.mask.width + ix) * 4 + 3];
+            return a > maskAlphaThreshold ? 1 : 0;
+        };
+
+        let nx = sampleOpaque(1, 0) - sampleOpaque(-1, 0);
+        let ny = sampleOpaque(0, 1) - sampleOpaque(0, -1);
+        if (nx === 0 && ny === 0) {
+            const speed = Math.hypot(ballObj.vx, ballObj.vy) || 1;
+            nx = ballObj.vx / speed;
+            ny = ballObj.vy / speed;
+        }
+
+        const nLen = Math.hypot(nx, ny) || 1;
+        nx /= nLen;
+        ny /= nLen;
+
+        const vDot = ballObj.vx * nx + ballObj.vy * ny;
+        ballObj.vx = (ballObj.vx - 2 * vDot * nx) * bounceFactor;
+        ballObj.vy = (ballObj.vy - 2 * vDot * ny) * bounceFactor;
+
+        ballObj.x = ballObj.prevX ?? ballObj.x;
+        ballObj.y = ballObj.prevY ?? ballObj.y;
+
+        // Impact flash
+        ballObj.element.classList.add('impact');
+        setTimeout(() => {
+            if (ballObj.element) ballObj.element.classList.remove('impact');
+        }, 150);
+
+        return true;
     }
 
     function resolveBallCollision(a, b) {
@@ -156,16 +430,64 @@
             a.vy -= iy;
             b.vx += ix;
             b.vy += iy;
+
+            // Visual feedback on ball collision
+            a.element.classList.add('impact');
+            b.element.classList.add('impact');
+
+            setTimeout(() => {
+                if (a.element) a.element.classList.remove('impact');
+                if (b.element) b.element.classList.remove('impact');
+            }, 150);
+
+            // Add spin to both balls
+            const spinTransfer = 5;
+            a.rotation = (a.rotation || 0) + spinTransfer * (Math.random() - 0.5);
+            b.rotation = (b.rotation || 0) + spinTransfer * (Math.random() - 0.5);
         }
     }
 
-    // Clamp velocity to prevent extreme speeds
+    // Clamp velocity and apply visual effects based on speed
     function clampVelocity(ballObj) {
         const speed = Math.sqrt(ballObj.vx * ballObj.vx + ballObj.vy * ballObj.vy);
+
+        // Add high-velocity class for visual trail effect
+        if (speed > maxVelocity * 0.6) {
+            ballObj.element.classList.add('high-velocity');
+            ballObj.element.classList.remove('resting');
+        } else if (speed < stopVelocity * 2) {
+            // Ball is nearly at rest
+            ballObj.element.classList.remove('high-velocity');
+            ballObj.element.classList.add('resting');
+        } else {
+            ballObj.element.classList.remove('high-velocity');
+            ballObj.element.classList.remove('resting');
+        }
+
         if (speed > maxVelocity) {
             const scale = maxVelocity / speed;
             ballObj.vx *= scale;
             ballObj.vy *= scale;
+        }
+    }
+
+    // Apply cursor magnetic field to ball
+    function applyCursorMagnetism(ballObj) {
+        const dx = mouseX - ballObj.x;
+        const dy = mouseY - ballObj.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < magneticRadius && distance > 5) { // Prevent division by zero and extreme forces
+            const force = (1 - distance / magneticRadius) * magneticStrength;
+            const angle = Math.atan2(dy, dx);
+
+            // Attract ball to cursor with damping
+            const forceX = Math.cos(angle) * force;
+            const forceY = Math.sin(angle) * force;
+
+            // Apply force with velocity damping to prevent runaway acceleration
+            ballObj.vx += forceX * 0.8;
+            ballObj.vy += forceY * 0.8;
         }
     }
 
@@ -185,11 +507,18 @@
         lastTime = currentTime;
 
         const obstacles = getObstacles();
-        const docWidth = document.documentElement.clientWidth;
+        const docWidth = window.innerWidth;
+        // Use document height so balls can fall through entire page
         const docHeight = document.documentElement.scrollHeight;
 
         balls.forEach((ballObj) => {
             if (!ballObj.active) return;
+
+            ballObj.prevX = ballObj.x;
+            ballObj.prevY = ballObj.y;
+
+            // Apply cursor magnetism
+            applyCursorMagnetism(ballObj);
 
             // Apply gravity (frame-independent)
             ballObj.vy += gravity * deltaTime;
@@ -198,12 +527,16 @@
             ballObj.vx *= Math.pow(airResistance, deltaTime);
             ballObj.vy *= Math.pow(airResistance, deltaTime);
 
-            // Clamp velocity
+            // Clamp velocity and update visuals
             clampVelocity(ballObj);
 
             // Update position (frame-independent)
             ballObj.x += ballObj.vx * deltaTime;
             ballObj.y += ballObj.vy * deltaTime;
+
+            // Update rotation with custom spin speed
+            if (!ballObj.rotation) ballObj.rotation = 0;
+            ballObj.rotation += ((ballObj.vx * 0.5) + (ballObj.spinSpeed || 0)) * deltaTime;
         });
 
         // Check collisions with obstacles
@@ -211,7 +544,11 @@
             if (!ballObj.active) return;
             // Check collisions
             for (const obs of obstacles) {
-                checkRectCollision(ballObj, obs);
+                if (obs.type === 'rect') {
+                    checkRectCollision(ballObj, obs);
+                } else if (obs.type === 'mask') {
+                    checkMaskCollision(ballObj, obs);
+                }
             }
         });
 
@@ -249,26 +586,55 @@
             }
 
             // Ceiling (prevent balls going above viewport)
-            if (ballObj.y - ballRadius < window.scrollY) {
-                ballObj.y = window.scrollY + ballRadius;
+            if (ballObj.y - ballRadius < 0) {
+                ballObj.y = ballRadius;
                 ballObj.vy = Math.abs(ballObj.vy) * bounceFactor;
                 if (Math.abs(ballObj.vy) < stopVelocity) {
                     ballObj.vy = 0;
                 }
             }
 
-            // Floor: let balls fall off screen, then remove
-            if (ballObj.y - ballRadius > docHeight + 50) {
-                if (ballObj.element && ballObj.element.parentNode) {
-                    ballObj.element.remove();
-                }
+            // Remove balls that fall below the page or go way off screen
+            if (ballObj.y > docHeight + 200) {
                 ballObj.active = false;
+                ballObj.element.classList.add('fade-out');
+                setTimeout(() => {
+                    if (ballObj.element && ballObj.element.parentNode) {
+                        ballObj.element.parentNode.removeChild(ballObj.element);
+                    }
+                }, 300);
                 return;
             }
 
-            // Update element position
+            // Floor with bounce - only bounce if near the bottom
+            if (ballObj.y + ballRadius > docHeight) {
+                ballObj.y = docHeight - ballRadius;
+                ballObj.vy = -Math.abs(ballObj.vy) * bounceFactor;
+
+                // Squash on floor bounce
+                const impactForce = Math.min(Math.abs(ballObj.vy) / maxVelocity, 1);
+                const squashX = 1 + impactForce * 0.5;
+                const squashY = 1 - impactForce * 0.4;
+                ballObj.element.style.transform = `translate(-50%, -50%) scaleX(${squashX}) scaleY(${squashY}) rotate(${ballObj.rotation || 0}deg)`;
+                setTimeout(() => {
+                    if (ballObj.element) {
+                        ballObj.element.style.transform = `translate(-50%, -50%) rotate(${ballObj.rotation || 0}deg)`;
+                    }
+                }, 120);
+
+                if (Math.abs(ballObj.vy) < stopVelocity) {
+                    ballObj.vy = 0;
+                }
+            }
+
+            // Update element position and rotation
             ballObj.element.style.left = ballObj.x + 'px';
             ballObj.element.style.top = ballObj.y + 'px';
+
+            // Apply rotation if not in squash animation
+            if (!ballObj.element.style.transform.includes('scale')) {
+                ballObj.element.style.transform = `translate(-50%, -50%) rotate(${ballObj.rotation || 0}deg)`;
+            }
         });
 
         // Remove inactive balls from array
@@ -285,35 +651,94 @@
         }
     }
 
-    // Click in hero to spawn ball
+    // Spawn ball at position with velocity and optional color variant
+    function spawnBall(x, y, vx = 0, vy = 2, variant = 'normal') {
+        cleanupBalls();
+
+        const ball = createBall();
+
+        // Add variety to ball appearance
+        if (variant === 'fast') {
+            ball.classList.add('high-velocity');
+        } else if (variant === 'slow') {
+            ball.classList.add('resting');
+        }
+
+        const ballObj = {
+            element: ball,
+            x: x,
+            y: y,
+            vx: vx + (Math.random() - 0.5) * 6, // Increased randomness
+            vy: vy + (Math.random() - 0.5) * 4, // Increased randomness
+            active: true,
+            stopping: false,
+            rotation: Math.random() * 360,
+            spinSpeed: (Math.random() - 0.5) * 10 // Random spin speed
+        };
+
+        ball.style.left = ballObj.x + 'px';
+        ball.style.top = ballObj.y + 'px';
+
+        balls.push(ballObj);
+
+        if (!animating) {
+            animating = true;
+            requestAnimationFrame(animateAll);
+        }
+
+        return ballObj;
+    }
+
+    // Click in hero to spawn ball with variety
     if (hero) {
         hero.addEventListener('click', (e) => {
             if (e.target.closest('a, button')) return;
 
-            cleanupBalls();
+            // Varied spawn patterns
+            const patterns = ['burst', 'straight', 'arc', 'random'];
+            const pattern = patterns[Math.floor(Math.random() * patterns.length)];
 
-            const ball = createBall();
-            const ballObj = {
-                element: ball,
-                x: e.clientX,
-                y: e.clientY + window.scrollY,
-                vx: (Math.random() - 0.5) * 6,
-                vy: 2,
-                active: true,
-                stopping: false
-            };
+            const clickForce = 8 + Math.random() * 4; // 8-12 force
+            const angle = (Math.random() - 0.5) * Math.PI / 2; // -45 to +45 degrees
 
-            ball.style.left = ballObj.x + 'px';
-            ball.style.top = ballObj.y + 'px';
+            let vx, vy;
 
-            balls.push(ballObj);
-
-            if (!animating) {
-                animating = true;
-                requestAnimationFrame(animateAll);
+            switch(pattern) {
+                case 'burst':
+                    // Explode outward from click point
+                    const burstAngle = Math.random() * Math.PI * 2;
+                    vx = Math.cos(burstAngle) * clickForce;
+                    vy = Math.sin(burstAngle) * clickForce;
+                    break;
+                case 'straight':
+                    // Straight down with slight variation
+                    vx = (Math.random() - 0.5) * 2;
+                    vy = clickForce;
+                    break;
+                case 'arc':
+                    // Arcing shot
+                    vx = (Math.random() - 0.5) * clickForce * 1.5;
+                    vy = -clickForce * 0.5; // Initial upward velocity
+                    break;
+                default:
+                    // Random direction
+                    vx = (Math.random() - 0.5) * clickForce * 2;
+                    vy = Math.random() * clickForce;
             }
+
+            const variant = Math.random() > 0.7 ? 'fast' : 'normal';
+
+            spawnBall(
+                e.clientX,
+                e.clientY,
+                vx,
+                vy,
+                variant
+            );
         });
     }
+
+    // Note: Scroll-based ball spawning removed per user request
 
     // =========================================================================
     // Smooth Scroll
@@ -355,6 +780,75 @@
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         reveals.forEach(el => el.classList.add('revealed'));
+    }
+
+    // =========================================================================
+    // Project Page Navigation with Smooth Transitions
+    // =========================================================================
+    const workItems = document.querySelectorAll('.work-item');
+
+    const projectLinks = {
+        'MoneyUp': 'moneyup.html',
+        'Would You Rather': 'wouldyourather.html',
+        'FoundersFlow': 'foundersflow.html'
+    };
+
+    // Staggered entrance animation for work items
+    const workObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100); // Stagger by 100ms
+                workObserver.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -80px 0px'
+    });
+
+    workItems.forEach((item, index) => {
+        // Set initial state for stagger animation
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(40px)';
+        item.style.transition = `opacity 0.8s var(--ease-out) ${index * 0.1}s, transform 0.8s var(--ease-out) ${index * 0.1}s`;
+
+        workObserver.observe(item);
+
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const projectTitle = item.querySelector('.work-title').textContent.trim();
+            const projectUrl = projectLinks[projectTitle];
+
+            if (projectUrl) {
+                window.location.href = projectUrl;
+            }
+        });
+    });
+
+    // =========================================================================
+    // Copy Email to Clipboard
+    // =========================================================================
+    const emailButton = document.querySelector('.contact-email');
+
+    if (emailButton) {
+        emailButton.addEventListener('click', async () => {
+            const email = emailButton.dataset.email;
+
+            try {
+                await navigator.clipboard.writeText(email);
+                emailButton.classList.add('copied');
+
+                setTimeout(() => {
+                    emailButton.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                console.log('Failed to copy email');
+            }
+        });
     }
 
 })();
