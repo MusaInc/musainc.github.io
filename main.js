@@ -15,73 +15,13 @@
     let scrollMomentum = 0;
     const momentumDecay = 0.92;
 
+    // All scroll-based physics disabled for stable, predictable behavior
     function updateScrollPhysics() {
-        const currentScrollY = window.scrollY;
-        const delta = currentScrollY - lastScrollY;
-
-        scrollVelocity = delta;
-        scrollMomentum += delta * 0.1;
-        scrollMomentum *= momentumDecay;
-
-        lastScrollY = currentScrollY;
-
-        // Apply physics to header - floats and blurs with velocity
-        const header = document.querySelector('.header');
-        if (header) {
-            const blurAmount = Math.min(Math.abs(scrollVelocity) * 0.3, 8);
-            const translateY = scrollMomentum * 0.2;
-            header.style.transform = `translateY(${translateY}px)`;
-            header.style.backdropFilter = `blur(${blurAmount}px)`;
-        }
-
-        // Apply parallax and distortion to hero title
-        const heroTitle = document.querySelector('.hero-title-image');
-        if (heroTitle) {
-            const heroRect = heroTitle.getBoundingClientRect();
-            const heroProgress = 1 - (heroRect.top / window.innerHeight);
-
-            if (heroProgress > 0 && heroProgress < 1.5) {
-                const parallax = heroProgress * 50;
-                const blur = Math.abs(scrollVelocity) * 0.15;
-                const scale = 1 + (heroProgress * 0.05);
-
-                heroTitle.style.transform = `translateY(${parallax}px) scale(${scale}) translateZ(10px)`;
-                heroTitle.style.filter = `brightness(${1 - heroProgress * 0.3}) blur(${blur}px)`;
-            }
-        }
-
-        // Apply momentum-based transforms to sections
-        document.querySelectorAll('.work-item, .service-card').forEach((item, index) => {
-            const rect = item.getBoundingClientRect();
-            const itemCenter = rect.top + rect.height / 2;
-            const viewportCenter = window.innerHeight / 2;
-            const distance = itemCenter - viewportCenter;
-            const isInView = rect.top < window.innerHeight && rect.bottom > 0;
-
-            if (isInView) {
-                const parallaxAmount = distance * 0.05;
-                const rotateAmount = (scrollMomentum * 0.002) * (index % 2 === 0 ? 1 : -1);
-                const opacity = 1 - Math.abs(distance / window.innerHeight) * 0.3;
-
-                item.style.transform = `translateY(${parallaxAmount}px) rotateX(${rotateAmount}deg)`;
-                item.style.opacity = Math.max(opacity, 0.3);
-            }
-        });
-
-        requestAnimationFrame(updateScrollPhysics);
+        // Scroll physics disabled
+        // No transforms, no parallax, no blur effects
     }
 
-    // Start scroll physics engine
-    requestAnimationFrame(updateScrollPhysics);
-
-    // Track scroll events for velocity calculation
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            scrollVelocity = 0;
-        }, 100);
-    }, { passive: true });
+    // Scroll tracking disabled
 
     // =========================================================================
     // Cursor Disturbance Field - Creates force around cursor
@@ -101,36 +41,8 @@
         mouseX += (targetMouseX - mouseX) * mouseSmoothing;
         mouseY += (targetMouseY - mouseY) * mouseSmoothing;
 
-        // Apply magnetic/repel effect to nearby elements with bounds
-        document.querySelectorAll('.work-item, .service-card, .services-cta-btn, .contact-email').forEach(item => {
-            const rect = item.getBoundingClientRect();
-            const itemCenterX = rect.left + rect.width / 2;
-            const itemCenterY = rect.top + rect.height / 2;
-
-            const distanceX = mouseX - itemCenterX;
-            const distanceY = mouseY - itemCenterY;
-            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-
-            const maxDistance = 200;
-            const maxDisplacement = 25; // Limit how far elements can move
-
-            if (distance < maxDistance && distance > 0) {
-                const force = (1 - distance / maxDistance) * 15;
-                const angle = Math.atan2(distanceY, distanceX);
-
-                // Repel effect with bounded displacement
-                let repelX = -Math.cos(angle) * force;
-                let repelY = -Math.sin(angle) * force;
-
-                // Clamp displacement to prevent flying away
-                repelX = Math.max(-maxDisplacement, Math.min(maxDisplacement, repelX));
-                repelY = Math.max(-maxDisplacement, Math.min(maxDisplacement, repelY));
-
-                item.style.transform = `translate(${repelX}px, ${repelY}px)`;
-            } else {
-                item.style.transform = '';
-            }
-        });
+        // Disturbance effect disabled to prevent drift
+        // Only update mouse position for ball physics
 
         requestAnimationFrame(animateMouseDisturbance);
     }
@@ -141,7 +53,10 @@
     // Physics Balls - Enhanced Energy Particle System
     // Balls are physical manifestations of kinetic energy
     // =========================================================================
-    const ballContainer = document.body;
+    const ballLayer = document.createElement('div');
+    ballLayer.className = 'ball-layer';
+    document.body.appendChild(ballLayer);
+    const ballContainer = ballLayer;
     const hero = document.querySelector('.hero');
     const balls = [];
     const maxBalls = 25;
@@ -213,11 +128,10 @@
 
             const insetX = Math.min(10, rect.width * 0.08);
             const insetY = Math.min(10, rect.height * 0.12);
-            const left = rect.left + insetX;
-            const right = rect.right - insetX;
-            // Use viewport coordinates - no scroll offset needed with fixed positioning
-            const top = rect.top + insetY;
-            const bottom = rect.bottom - insetY;
+            const left = rect.left + window.scrollX + insetX;
+            const right = rect.right + window.scrollX - insetX;
+            const top = rect.top + window.scrollY + insetY;
+            const bottom = rect.bottom + window.scrollY - insetY;
             if (right - left < 4 || bottom - top < 4) return;
 
             obstacles.push({
@@ -237,10 +151,10 @@
             const mask = getMaskData(el);
             if (!mask) return;
 
-            const left = rect.left;
-            const right = rect.right;
-            const top = rect.top;
-            const bottom = rect.bottom;
+            const left = rect.left + window.scrollX;
+            const right = rect.right + window.scrollX;
+            const top = rect.top + window.scrollY;
+            const bottom = rect.bottom + window.scrollY;
 
             obstacles.push({
                 type: 'mask',
@@ -473,8 +387,10 @@
 
     // Apply cursor magnetic field to ball
     function applyCursorMagnetism(ballObj) {
-        const dx = mouseX - ballObj.x;
-        const dy = mouseY - ballObj.y;
+        const mouseDocX = mouseX + window.scrollX;
+        const mouseDocY = mouseY + window.scrollY;
+        const dx = mouseDocX - ballObj.x;
+        const dy = mouseDocY - ballObj.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < magneticRadius && distance > 5) { // Prevent division by zero and extreme forces
@@ -507,9 +423,9 @@
         lastTime = currentTime;
 
         const obstacles = getObstacles();
-        const docWidth = window.innerWidth;
-        // Use document height so balls can fall through entire page
-        const docHeight = document.documentElement.scrollHeight;
+        const docEl = document.documentElement;
+        const docWidth = Math.max(docEl.scrollWidth, docEl.clientWidth, document.body.scrollWidth);
+        const docHeight = Math.max(docEl.scrollHeight, docEl.clientHeight, document.body.scrollHeight);
 
         balls.forEach((ballObj) => {
             if (!ballObj.active) return;
@@ -729,8 +645,8 @@
             const variant = Math.random() > 0.7 ? 'fast' : 'normal';
 
             spawnBall(
-                e.clientX,
-                e.clientY,
+                e.pageX,
+                e.pageY,
                 vx,
                 vy,
                 variant

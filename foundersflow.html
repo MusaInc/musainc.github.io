@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FoundersFlow — Thoughtful content systems for founders building in public.">
+    <meta name="description" content="FoundersFlow — Clean, modern business website for startup-focused platform">
     <meta name="theme-color" content="#0a0a0b">
-    <title>FoundersFlow — Musa Studio</title>
+
+    <title>FoundersFlow — Business Website | Musa Studio</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,184 +14,107 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="project.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>●</text></svg>">
 </head>
-<body class="project-page ff-page">
+<body>
     <div class="noise" aria-hidden="true"></div>
 
     <!-- Header -->
     <header class="header">
-        <a href="index.html" class="logo">← Musa Studio</a>
+        <a href="index.html" class="logo" data-ball-obstacle>Musa Studio</a>
+        <nav class="nav">
+            <a href="index.html#work" class="nav-link" data-ball-obstacle>Work</a>
+            <a href="index.html#services" class="nav-link" data-ball-obstacle>Services</a>
+            <a href="index.html#about" class="nav-link" data-ball-obstacle>About</a>
+            <a href="index.html#contact" class="nav-link" data-ball-obstacle>Contact</a>
+        </nav>
     </header>
 
-    <!-- Scene 01 — Introduction (Pinned Hero) -->
-    <section class="project-scene scene-intro" data-scene="intro">
-        <div class="scene-sticky">
-            <div class="device-container">
-                <div class="laptop-frame">
-                    <img src="Work/FoundersFlow/foundersflow.png" alt="FoundersFlow platform interface" class="device-screen">
-                </div>
-            </div>
-            <div class="scene-text fade-in-late">
-                <img src="Work/FoundersFlow/foundersflow-logo.png" alt="FoundersFlow logo" class="project-logo">
-                <p>Thoughtful content systems for founders building in public.</p>
-            </div>
-        </div>
-    </section>
+    <main class="project-page">
+        <!-- Project Hero -->
+        <section class="project-hero">
+            <div class="project-hero-content">
+                <a href="index.html#work" class="back-link" data-ball-obstacle>← Back to work</a>
+                <span class="project-category" data-ball-obstacle>Brand / Web</span>
+                <h1 class="project-title" data-ball-obstacle>FoundersFlow</h1>
+                <p class="project-tagline" data-ball-obstacle>Complete brand identity and website for a startup accelerator. Modern design system with custom illustrations and interactive elements.</p>
 
-    <!-- Scene 02 — Brand Identity -->
-    <section class="project-scene scene-identity ff-identity" data-scene="identity">
-        <div class="scene-sticky">
-            <div class="identity-grid">
-                <div class="identity-layer ff-layer" data-layer="1">
-                    <div class="typography-hierarchy">
-                        <div class="type-level" style="font-size: 3rem; font-weight: 700;">Heading</div>
-                        <div class="type-level" style="font-size: 1.5rem; font-weight: 600;">Subheading</div>
-                        <div class="type-level" style="font-size: 1rem; font-weight: 400;">Body Text</div>
+                <div class="project-meta">
+                    <div class="project-meta-item">
+                        <span class="meta-label">Platform</span>
+                        <span class="meta-value">Web</span>
                     </div>
-                </div>
-                <div class="identity-layer ff-layer" data-layer="2">
-                    <div class="color-system">
-                        <div class="color-swatch" style="background: #0a0a0b;"></div>
-                        <div class="color-swatch" style="background: #6366f1;"></div>
-                        <div class="color-swatch" style="background: #fafafa;"></div>
+                    <div class="project-meta-item">
+                        <span class="meta-label">Type</span>
+                        <span class="meta-value">Startup / Business Website</span>
                     </div>
-                </div>
-                <div class="identity-layer ff-layer" data-layer="3">
-                    <div class="component-grid">
-                        <div class="ui-component"></div>
-                        <div class="ui-component"></div>
-                        <div class="ui-component"></div>
+                    <div class="project-meta-item">
+                        <span class="meta-label">Tech Stack</span>
+                        <span class="meta-value">HTML, CSS, JavaScript, GitHub Pages</span>
+                    </div>
+                    <div class="project-meta-item">
+                        <span class="meta-label">Website</span>
+                        <span class="meta-value"><a href="https://www.foundersflow.co.uk" target="_blank" rel="noopener">foundersflow.co.uk</a></span>
                     </div>
                 </div>
             </div>
-            <div class="scene-text">
-                <p>A visual identity designed for credibility and consistency.</p>
+        </section>
+
+        <!-- Project Image -->
+        <section class="project-showcase">
+            <div class="project-image-container">
+                <img src="Work/FoundersFlow/foundersflow.png" alt="FoundersFlow website" class="project-image">
             </div>
+        </section>
+
+        <!-- Project Overview -->
+        <section class="project-section">
+            <div class="project-content">
+                <div class="content-block">
+                    <h2 class="section-heading" data-ball-obstacle>Overview</h2>
+                    <p class="section-text">FoundersFlow is a clean, modern business website built to present a startup-focused platform with clarity and credibility. The goal was to create a professional online presence that feels trustworthy, simple, and scalable, without unnecessary complexity.</p>
+                    <p class="section-text">The site was developed and deployed using GitHub Pages, with full domain configuration and DNS setup handled independently. Particular attention was paid to layout, typography, and responsiveness to ensure the site works seamlessly across devices.</p>
+                </div>
+
+                <div class="content-block">
+                    <h2 class="section-heading" data-ball-obstacle>Key Contributions</h2>
+                    <ul class="project-list">
+                        <li>Designed and built a modern, minimal marketing website</li>
+                        <li>Deployed using GitHub Pages with custom domain configuration</li>
+                        <li>Managed DNS setup and propagation with GoDaddy</li>
+                        <li>Ensured responsive design across desktop and mobile</li>
+                        <li>Delivered a maintainable setup suitable for early-stage businesses</li>
+                    </ul>
+                </div>
+
+                <div class="content-block">
+                    <h2 class="section-heading" data-ball-obstacle>Outcome</h2>
+                    <p class="section-text">A live, production-ready website that demonstrates both technical delivery and real-world client deployment experience.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Navigation -->
+        <section class="project-navigation">
+            <a href="moneyup.html" class="project-nav-link project-nav-prev">
+                <span class="nav-label">Previous Project</span>
+                <span class="nav-title">MoneyUp</span>
+            </a>
+            <a href="wouldyourather.html" class="project-nav-link project-nav-next">
+                <span class="nav-label">Next Project</span>
+                <span class="nav-title">Would You Rather</span>
+            </a>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-left">
+            <span>© 2025 Musa Studio</span>
         </div>
-    </section>
+        <div class="footer-right"></div>
+    </footer>
 
-    <!-- Scene 03 — UI / UX System -->
-    <section class="project-scene scene-ui ff-ui" data-scene="ui">
-        <div class="scene-sticky">
-            <div class="ui-showcase">
-                <div class="dashboard-preview">
-                    <div class="dashboard-card" data-card="1">
-                        <div class="card-header"></div>
-                        <div class="card-content"></div>
-                    </div>
-                    <div class="dashboard-card" data-card="2">
-                        <div class="card-header"></div>
-                        <div class="card-content"></div>
-                    </div>
-                    <div class="dashboard-card" data-card="3">
-                        <div class="card-header"></div>
-                        <div class="card-content"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="scene-text">
-                <p>Interfaces built to scale with ambition.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Scene 04 — Website Experience -->
-    <section class="project-scene scene-flow ff-flow" data-scene="flow">
-        <div class="scene-sticky">
-            <div class="flow-container">
-                <div class="laptop-frame flow-laptop">
-                    <div class="website-scroll">
-                        <div class="page-section" data-section="hero">
-                            <div class="section-content"></div>
-                        </div>
-                        <div class="page-section" data-section="features">
-                            <div class="section-content"></div>
-                        </div>
-                        <div class="page-section" data-section="pricing">
-                            <div class="section-content"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="scene-text">
-                <p>A platform that makes consistency effortless.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Scene 05 — Marketing & Growth Assets -->
-    <section class="project-scene scene-marketing ff-marketing" data-scene="marketing">
-        <div class="scene-sticky">
-            <div class="marketing-grid horizontal-spread">
-                <div class="marketing-asset" data-asset="1">
-                    <img src="Work/FoundersFlow/gallery/ff-01.png" alt="FoundersFlow onboarding overview">
-                </div>
-                <div class="marketing-asset" data-asset="2">
-                    <img src="Work/FoundersFlow/gallery/ff-02.png" alt="FoundersFlow packages section">
-                </div>
-                <div class="marketing-asset" data-asset="3">
-                    <img src="Work/FoundersFlow/gallery/ff-03.png" alt="FoundersFlow contact form">
-                </div>
-            </div>
-            <div class="scene-text">
-                <p>A cohesive ecosystem across product, marketing, and brand.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Scene 05b — Additional Web Layouts -->
-    <section class="project-scene scene-gallery" data-scene="marketing">
-        <div class="scene-sticky">
-            <div class="marketing-grid gallery-grid">
-                <div class="marketing-asset" data-asset="1">
-                    <img src="Work/FoundersFlow/gallery/sc-01.png" alt="Website layout 1">
-                </div>
-                <div class="marketing-asset" data-asset="2">
-                    <img src="Work/FoundersFlow/gallery/sc-02.png" alt="Website layout 2">
-                </div>
-                <div class="marketing-asset" data-asset="3">
-                    <img src="Work/FoundersFlow/gallery/sc-03.png" alt="Website layout 3">
-                </div>
-                <div class="marketing-asset" data-asset="4">
-                    <img src="Work/FoundersFlow/gallery/sc-04.png" alt="Website layout 4">
-                </div>
-                <div class="marketing-asset" data-asset="5">
-                    <img src="Work/FoundersFlow/gallery/sc-05.png" alt="Website layout 5">
-                </div>
-                <div class="marketing-asset" data-asset="6">
-                    <img src="Work/FoundersFlow/gallery/sc-06.png" alt="Website layout 6">
-                </div>
-            </div>
-            <div class="scene-text">
-                <p>Additional layout explorations created for modern service brands.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Scene 06 — Closing Moment -->
-    <section class="project-scene scene-closing ff-closing" data-scene="closing">
-        <div class="scene-sticky">
-            <div class="closing-container">
-                <div class="laptop-frame closing-laptop">
-                    <img src="Work/FoundersFlow/gallery/ff-04.png" alt="FoundersFlow final frame" class="device-screen">
-                </div>
-            </div>
-            <div class="scene-text closing-text">
-                <p>Designed to support founders as they grow into authority.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Navigation -->
-    <nav class="project-nav">
-        <a href="wouldyourather.html" class="nav-project">
-            <span class="nav-label">Next Project</span>
-            <span class="nav-title">Would You Rather</span>
-        </a>
-    </nav>
-
-    <script src="project.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
