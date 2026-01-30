@@ -59,7 +59,7 @@
     const ballContainer = ballLayer;
     const hero = document.querySelector('.hero');
     const balls = [];
-    const maxBalls = 25;
+    const maxBalls = 15; // Reduced from 25 for better performance
 
     const gravity = 0.7;
     const airResistance = 0.995;
@@ -120,6 +120,7 @@
     }
 
     // Get obstacles - only marked elements are collidable
+    // Uses viewport coordinates only (no scroll offsets) to match position:fixed balls
     function getObstacles() {
         const obstacles = [];
         document.querySelectorAll('[data-ball-obstacle]').forEach((el) => {
@@ -128,10 +129,11 @@
 
             const insetX = Math.min(10, rect.width * 0.08);
             const insetY = Math.min(10, rect.height * 0.12);
-            const left = rect.left + window.scrollX + insetX;
-            const right = rect.right + window.scrollX - insetX;
-            const top = rect.top + window.scrollY + insetY;
-            const bottom = rect.bottom + window.scrollY - insetY;
+            // Use viewport coordinates only - no scroll offsets
+            const left = rect.left + insetX;
+            const right = rect.right - insetX;
+            const top = rect.top + insetY;
+            const bottom = rect.bottom - insetY;
             if (right - left < 4 || bottom - top < 4) return;
 
             obstacles.push({
@@ -151,10 +153,11 @@
             const mask = getMaskData(el);
             if (!mask) return;
 
-            const left = rect.left + window.scrollX;
-            const right = rect.right + window.scrollX;
-            const top = rect.top + window.scrollY;
-            const bottom = rect.bottom + window.scrollY;
+            // Use viewport coordinates only - no scroll offsets
+            const left = rect.left;
+            const right = rect.right;
+            const top = rect.top;
+            const bottom = rect.bottom;
 
             obstacles.push({
                 type: 'mask',
@@ -387,13 +390,14 @@
 
     // Apply cursor magnetic field to ball
     function applyCursorMagnetism(ballObj) {
-        const mouseDocX = mouseX + window.scrollX;
-        const mouseDocY = mouseY + window.scrollY;
-        const dx = mouseDocX - ballObj.x;
-        const dy = mouseDocY - ballObj.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Use viewport coordinates directly since balls are position:fixed
+        const dx = mouseX - ballObj.x;
+        const dy = mouseY - ballObj.y;
+        const distanceSq = dx * dx + dy * dy;
+        const magneticRadiusSq = magneticRadius * magneticRadius;
 
-        if (distance < magneticRadius && distance > 5) { // Prevent division by zero and extreme forces
+        if (distanceSq < magneticRadiusSq && distanceSq > 25) { // Prevent division by zero and extreme forces
+            const distance = Math.sqrt(distanceSq);
             const force = (1 - distance / magneticRadius) * magneticStrength;
             const angle = Math.atan2(dy, dx);
 
@@ -409,6 +413,9 @@
 
     // Animation loop for all balls
     let animating = false;
+    let obstacleCache = [];
+    let obstacleCacheTime = 0;
+    const obstacleCacheDuration = 100; // Cache obstacles for 100ms to reduce DOM queries
 
     function animateAll(currentTime) {
         if (balls.length === 0) {
@@ -422,10 +429,16 @@
         const deltaTime = Math.min((currentTime - lastTime) / 16.67, 2); // Normalize to ~60fps, cap at 2x
         lastTime = currentTime;
 
-        const obstacles = getObstacles();
-        const docEl = document.documentElement;
-        const docWidth = Math.max(docEl.scrollWidth, docEl.clientWidth, document.body.scrollWidth);
-        const docHeight = Math.max(docEl.scrollHeight, docEl.clientHeight, document.body.scrollHeight);
+        // Cache obstacles to reduce expensive DOM queries
+        if (currentTime - obstacleCacheTime > obstacleCacheDuration) {
+            obstacleCache = getObstacles();
+            obstacleCacheTime = currentTime;
+        }
+        const obstacles = obstacleCache;
+
+        const docWidth = window.innerWidth;
+        // Use viewport height only - balls are position:fixed so they stay in viewport
+        const docHeight = window.innerHeight;
 
         balls.forEach((ballObj) => {
             if (!ballObj.active) return;
@@ -541,9 +554,30 @@
                 if (Math.abs(ballObj.vy) < stopVelocity) {
                     ballObj.vy = 0;
                 }
+
+                // Track resting time at bottom
+                if (Math.abs(ballObj.vx) < stopVelocity && Math.abs(ballObj.vy) < stopVelocity) {
+                    if (!ballObj.restingStartTime) {
+                        ballObj.restingStartTime = currentTime;
+                    } else if (currentTime - ballObj.restingStartTime > 3000) {
+                        // Ball has been resting for 3 seconds, fade out and delete
+                        ballObj.element.style.opacity = '0';
+                        ballObj.element.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => {
+                            if (ballObj.element && ballObj.element.parentNode) {
+                                ballObj.element.parentNode.removeChild(ballObj.element);
+                            }
+                        }, 500);
+                        ballObj.active = false;
+                    }
+                } else {
+                    ballObj.restingStartTime = null;
+                }
+            } else {
+                ballObj.restingStartTime = null;
             }
 
-            // Update element position and rotation
+            // Update element position using transform for better performance
             ballObj.element.style.left = ballObj.x + 'px';
             ballObj.element.style.top = ballObj.y + 'px';
 
@@ -763,6 +797,60 @@
                 }, 2000);
             } catch (err) {
                 console.log('Failed to copy email');
+            }
+        });
+    }
+
+    // =========================================================================
+    // Contact Form Handling - Formspree Integration
+    // =========================================================================
+    const contactForm = document.getElementById('contactForm');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitButton = contactForm.querySelector('.form-submit');
+            const formData = new FormData(contactForm);
+
+            // Show sending state
+            submitButton.classList.add('sending');
+            submitButton.disabled = true;
+
+            try {
+                // Submit to Formspree
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Submission failed');
+                }
+
+                // Show success state
+                submitButton.classList.remove('sending');
+                submitButton.classList.add('success');
+
+                // Reset form after delay
+                setTimeout(() => {
+                    contactForm.reset();
+                    submitButton.classList.remove('success');
+                    submitButton.disabled = false;
+                }, 3000);
+
+            } catch (error) {
+                console.error('Form submission error:', error);
+
+                // Show error state
+                submitButton.classList.remove('sending');
+                submitButton.disabled = false;
+
+                // Show error message
+                alert('Sorry, there was an error sending your message. Please try emailing us directly at abdulmusa9812@gmail.com');
             }
         });
     }

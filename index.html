@@ -24,6 +24,7 @@
         <a href="#" class="logo">Musa Studio</a>
         <nav class="nav">
             <a href="#work" class="nav-link">Work</a>
+            <a href="portfolio.html" class="nav-link">Portfolio</a>
             <a href="#services" class="nav-link">Services</a>
             <a href="#about" class="nav-link">About</a>
             <a href="#contact" class="nav-link">Contact</a>
@@ -74,7 +75,7 @@
             <div class="work-grid">
                 <article class="work-item">
                     <div class="work-image">
-                        <img src="Work/FoundersFlow/foundersflow.png" alt="FoundersFlow website design" loading="lazy">
+                        <img src="Work/FoundersFlow/foundersflow.png" alt="FoundersFlow website design" loading="lazy" decoding="async" width="800" height="600">
                     </div>
                     <div class="work-info">
                         <div class="work-meta">
@@ -87,7 +88,7 @@
                 </article>
                 <article class="work-item">
                     <div class="work-image">
-                        <img src="Work/WouldYouRather/wouldyourather.png" alt="Would You Rather Fire TV app" loading="lazy">
+                        <img src="Work/WouldYouRather/wouldyourather.png" alt="Would You Rather Fire TV app" loading="lazy" decoding="async" width="800" height="600">
                     </div>
                     <div class="work-info">
                         <div class="work-meta">
@@ -100,7 +101,7 @@
                 </article>
                 <article class="work-item work-item--wide">
                     <div class="work-image">
-                        <img src="Work/MoneyUp/moneyup.png" alt="MoneyUp mobile app" loading="lazy">
+                        <img src="Work/MoneyUp/moneyup.png" alt="MoneyUp mobile app" loading="lazy" decoding="async" width="800" height="600">
                     </div>
                     <div class="work-info">
                         <div class="work-meta">
@@ -279,10 +280,64 @@
             <div class="contact-content">
                 <span class="label">Get in touch</span>
                 <h2 class="contact-title">Let's work together</h2>
-                <button class="contact-email" data-email="abdulmusa9812@gmail.com" aria-label="Copy email to clipboard">
-                    abdulmusa9812@gmail.com
-                    <span class="email-copied-bubble">Copied to clipboard!</span>
-                </button>
+                <p class="contact-subtitle">Have a project in mind? Drop us a message. We usually respond within 24 hours.</p>
+
+                <form class="contact-form" id="contactForm" action="https://formspree.io/f/xnnqbgez" method="POST">
+                    <div class="form-group">
+                        <label for="name" class="form-label">What should we call you?</label>
+                        <input type="text" id="name" name="name" class="form-input" placeholder="Your name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Where can we reach you?</label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project" class="form-label">What are you working on?</label>
+                        <select id="project" name="project" class="form-select">
+                            <option value="">Pick one (or close enough)</option>
+                            <option value="brand">Brand Identity</option>
+                            <option value="website">Website Design</option>
+                            <option value="app">Mobile/Web App</option>
+                            <option value="ongoing">Ongoing Support</option>
+                            <option value="other">Something else entirely</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message" class="form-label">Tell us about it</label>
+                        <textarea id="message" name="message" class="form-textarea" placeholder="The more details, the better. But don't worry about being formal — just tell us what's on your mind." rows="5" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budget" class="form-label">Budget range (optional, but helpful)</label>
+                        <select id="budget" name="budget" class="form-select">
+                            <option value="">Prefer not to say</option>
+                            <option value="under-5k">Under £5k</option>
+                            <option value="5k-10k">£5k - £10k</option>
+                            <option value="10k-25k">£10k - £25k</option>
+                            <option value="25k-plus">£25k+</option>
+                        </select>
+                    </div>
+
+                    <!-- Formspree honeypot for spam protection -->
+                    <input type="text" name="_gotcha" style="display:none">
+
+                    <button type="submit" class="form-submit">
+                        <span class="submit-text">Send Message</span>
+                        <span class="submit-sending">Sending...</span>
+                        <span class="submit-success">Message Sent!</span>
+                    </button>
+                </form>
+
+                <div class="contact-alternative">
+                    <p>Prefer email?</p>
+                    <button class="contact-email" data-email="abdulmusa9812@gmail.com" aria-label="Copy email to clipboard">
+                        abdulmusa9812@gmail.com
+                        <span class="email-copied-bubble">Copied!</span>
+                    </button>
+                </div>
             </div>
         </section>
     </main>
