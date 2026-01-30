@@ -802,7 +802,7 @@
     }
 
     // =========================================================================
-    // Contact Form Handling - Formspree Integration
+    // Contact Form Handling - Web3Forms Integration
     // =========================================================================
     const contactForm = document.getElementById('contactForm');
 
@@ -818,17 +818,16 @@
             submitButton.disabled = true;
 
             try {
-                // Submit to Formspree
-                const response = await fetch(contactForm.action, {
+                // Submit to Web3Forms
+                const response = await fetch('https://api.web3forms.com/submit', {
                     method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    body: formData
                 });
 
-                if (!response.ok) {
-                    throw new Error('Submission failed');
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Submission failed');
                 }
 
                 // Show success state

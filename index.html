@@ -282,7 +282,13 @@
                 <h2 class="contact-title">Let's work together</h2>
                 <p class="contact-subtitle">Have a project in mind? Drop us a message. We usually respond within 24 hours.</p>
 
-                <form class="contact-form" id="contactForm" action="https://formspree.io/f/xnnqbgez" method="POST">
+                <form class="contact-form" id="contactForm">
+                    <!-- Web3Forms Access Key -->
+                    <input type="hidden" name="access_key" value="4e9a3c2f-8b7d-4a1e-9f3c-2d8b7e4a1f9c">
+
+                    <!-- Redirect after submission -->
+                    <input type="hidden" name="redirect" value="false">
+
                     <div class="form-group">
                         <label for="name" class="form-label">What should we call you?</label>
                         <input type="text" id="name" name="name" class="form-input" placeholder="Your name" required>
@@ -297,11 +303,11 @@
                         <label for="project" class="form-label">What are you working on?</label>
                         <select id="project" name="project" class="form-select">
                             <option value="">Pick one (or close enough)</option>
-                            <option value="brand">Brand Identity</option>
-                            <option value="website">Website Design</option>
-                            <option value="app">Mobile/Web App</option>
-                            <option value="ongoing">Ongoing Support</option>
-                            <option value="other">Something else entirely</option>
+                            <option value="Brand Identity">Brand Identity</option>
+                            <option value="Website Design">Website Design</option>
+                            <option value="Mobile/Web App">Mobile/Web App</option>
+                            <option value="Ongoing Support">Ongoing Support</option>
+                            <option value="Something else entirely">Something else entirely</option>
                         </select>
                     </div>
 
@@ -314,15 +320,15 @@
                         <label for="budget" class="form-label">Budget range (optional, but helpful)</label>
                         <select id="budget" name="budget" class="form-select">
                             <option value="">Prefer not to say</option>
-                            <option value="under-5k">Under £5k</option>
-                            <option value="5k-10k">£5k - £10k</option>
-                            <option value="10k-25k">£10k - £25k</option>
-                            <option value="25k-plus">£25k+</option>
+                            <option value="Under £5k">Under £5k</option>
+                            <option value="£5k - £10k">£5k - £10k</option>
+                            <option value="£10k - £25k">£10k - £25k</option>
+                            <option value="£25k+">£25k+</option>
                         </select>
                     </div>
 
-                    <!-- Formspree honeypot for spam protection -->
-                    <input type="text" name="_gotcha" style="display:none">
+                    <!-- Honeypot for spam protection -->
+                    <input type="checkbox" name="botcheck" class="hidden" style="display:none">
 
                     <button type="submit" class="form-submit">
                         <span class="submit-text">Send Message</span>
